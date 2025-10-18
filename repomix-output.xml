@@ -1,0 +1,2081 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+llm_prompt_manager/
+  app/
+    data/
+      prompts.json
+    static/
+      script.js
+      style.css
+    templates/
+      index.html
+    __init__.py
+    api.py
+    crud.py
+    main.py
+    models.py
+    utils.py
+  tests/
+    test_api.py
+llm_prompt_manager.env/
+  bin/
+    activate
+    activate.csh
+    activate.fish
+    Activate.ps1
+    fastapi
+    httpx
+    pip
+    pip3
+    pip3.11
+    py.test
+    pygmentize
+    pytest
+    uvicorn
+  pyvenv.cfg
+.gitattributes
+.gitignore
+LICENSE
+PLAN.md
+README.md
+requirements.txt
+SPEC.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="llm_prompt_manager/app/data/prompts.json">
+[
+  {
+    "title": "Test",
+    "description": "Test",
+    "base_prompt": "Hello { {{name}} }. What are you doing at { {{time}} }?",
+    "parameters": [
+      "name",
+      "time"
+    ],
+    "id": "e0ef0ed9-cb92-4a05-91b2-99bf9c790e3b"
+  },
+  {
+    "title": "Coding Agent Prompt Creation Prompt",
+    "description": "A prompt which can be provided to a LLM-based chatbot which has context about a feature to implement. The result of providing this prompt to the chatbot can be passed to a coding agent (e.g., Cursor, Gemini CLI, Claude Code, etc.).",
+    "base_prompt": "Implement the specified feature into the codebase. **Focus on conceptual clarity and overall architectural integration**, leaving granular implementation choices and specific low-level logic (e.g., helper functions, specific variable names beyond essential ones) to your discretion. **Do not provide overly specific implementation details** that limit your freedom, unless absolutely necessary for correct integration.\n\nYour response must strictly adhere to the following structure and content requirements:\n\n### 1. Feature Overview\n\nProvide a **clear and concise conceptual overview** of the feature's purpose, scope, and expected user value.\n\n### 2. Conceptual Breakdown of Codebase Changes (No Code)\n\nProvide a **comprehensive, high-level conceptual breakdown** of all necessary changes to integrate the feature into the existing codebase structure. This must detail the conceptual roles of new classes, methods, or functions, and which existing components they will interact with or modify. **Avoid writing or suggesting specific code implementation details.** Focus on *what* needs to be done and *where* it fits conceptually.\n\n### 3. Architectural Alignment and Guidance\n\nOffer **specific, high-level guidance** on how these changes align with, and respect, the current architecture (e.g., adherence to design patterns, module separation, data flow conventions). **Emphasize modularity**\u2014each conceptual function should perform a specific, single task.\n\n---\n\n### General Coding Style and Deliverables\n\nAdhere to the following style guidelines in the implemented code:\n\n* **Docstrings:** Use **NumPy docstring format** for all classes, methods, and functions where applicable. Ensure the verbiage is **concise**.\n* **Comments:** **Remove all unnecessary comments.** Only include comments for non-obvious, complex logic if absolutely required for understanding.\n* **Modularity:** Ensure the code is highly modular; each function/method must perform a **specific, single task**.\n* **Emojis:** Avoid the use of emojis.\n\n---\n\n### Context Files\n\nThe following files will be provided as context for accurate and efficient implementation:\n\n* [List of all necessary files (e.g., `src/module_a/file.py`, `tests/test_file.py`, etc.)]",
+    "parameters": [],
+    "id": "a9410a06-1b44-4fbc-9e26-9e8426faaa4b"
+  }
+]
+</file>
+
+<file path="llm_prompt_manager/app/static/script.js">
+// LLM Prompt Manager Frontend Logic
+(function () {
+    const apiBase = "/api/prompts"; // trailing slash added by endpoints where needed
+
+    // State
+    let prompts = [];
+    let selectedPrompt = null;
+    let parameterValues = {}; // { [paramName]: value }
+
+    // Elements
+    const searchInput = document.getElementById("searchInput");
+    const promptList = document.getElementById("promptList");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailDescription = document.getElementById("detailDescription");
+    const parametersContainer = document.getElementById("parametersContainer");
+    const assembledOutput = document.getElementById("assembledOutput");
+    const copyBtn = document.getElementById("copyBtn");
+
+    const addPromptBtn = document.getElementById("addPromptBtn");
+    const editPromptBtn = document.getElementById("editPromptBtn");
+    const deletePromptBtn = document.getElementById("deletePromptBtn");
+
+    // Modal elements
+    const promptModalEl = document.getElementById("promptModal");
+    const promptModal = promptModalEl ? new bootstrap.Modal(promptModalEl) : null;
+    const promptIdEl = document.getElementById("promptId");
+    const promptTitleEl = document.getElementById("promptTitle");
+    const promptDescriptionEl = document.getElementById("promptDescription");
+    const promptBaseEl = document.getElementById("promptBase");
+    const addParamFieldBtn = document.getElementById("addParamFieldBtn");
+    const paramFields = document.getElementById("paramFields");
+    const savePromptBtn = document.getElementById("savePromptBtn");
+    const promptModalTitle = document.getElementById("promptModalTitle");
+
+    // Utilities
+    function sanitize(str) {
+        return (str || "").toString();
+    }
+
+    function replacePlaceholders(template, values) {
+        if (!template) return "";
+        return template.replace(/\{\{(.*?)\}\}/g, (_, key) => {
+            const trimmed = key.trim();
+            return values[trimmed] || "";
+        });
+    }
+
+    function setButtonsEnabled(enabled) {
+        editPromptBtn.disabled = !enabled;
+        deletePromptBtn.disabled = !enabled;
+        copyBtn.disabled = !enabled;
+    }
+
+    // Fetch & Render
+    async function loadPrompts() {
+        try {
+            const res = await fetch(`${apiBase}/`);
+            if (!res.ok) throw new Error(`Failed to fetch prompts: ${res.status}`);
+            prompts = await res.json();
+            renderList();
+            // Keep selection if still present
+            if (selectedPrompt) {
+                const stillExists = prompts.find(p => p.id === selectedPrompt.id);
+                if (stillExists) {
+                    selectPrompt(stillExists);
+                } else {
+                    clearDetail();
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Failed to load prompts.");
+        }
+    }
+
+    function renderList(filterText = sanitize(searchInput.value).toLowerCase()) {
+        promptList.innerHTML = "";
+        const filtered = prompts.filter(p => {
+            const title = sanitize(p.title).toLowerCase();
+            const desc = sanitize(p.description).toLowerCase();
+            return !filterText || title.includes(filterText) || desc.includes(filterText);
+        });
+
+        filtered.forEach(p => {
+            const li = document.createElement("li");
+            li.className = "list-group-item list-group-item-action" + (selectedPrompt && selectedPrompt.id === p.id ? " active" : "");
+            li.textContent = p.title;
+            li.style.cursor = "pointer";
+            li.addEventListener("click", () => selectPrompt(p));
+            promptList.appendChild(li);
+        });
+    }
+
+    function clearDetail() {
+        selectedPrompt = null;
+        detailTitle.textContent = "Select a prompt";
+        detailDescription.textContent = "";
+        parametersContainer.innerHTML = "";
+        assembledOutput.textContent = "";
+        parameterValues = {};
+        setButtonsEnabled(false);
+        renderList();
+    }
+
+    function selectPrompt(prompt) {
+        selectedPrompt = prompt;
+        renderDetail(prompt);
+        setButtonsEnabled(true);
+        renderList();
+    }
+
+    function renderDetail(prompt) {
+        detailTitle.textContent = sanitize(prompt.title);
+        detailDescription.textContent = sanitize(prompt.description);
+        parametersContainer.innerHTML = "";
+        parameterValues = parameterValues || {};
+
+        const parameters = Array.isArray(prompt.parameters) ? prompt.parameters : [];
+        parameters.forEach(paramName => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "mb-2";
+
+            const label = document.createElement("label");
+            label.className = "form-label";
+            label.textContent = paramName;
+            label.setAttribute("for", `param_${paramName}`);
+
+            const textarea = document.createElement("textarea");
+            textarea.className = "form-control";
+            textarea.id = `param_${paramName}`;
+            textarea.value = parameterValues[paramName] || "";
+            textarea.addEventListener("input", () => {
+                parameterValues[paramName] = textarea.value;
+                updateAssembled();
+            });
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(textarea);
+            parametersContainer.appendChild(wrapper);
+        });
+
+        updateAssembled();
+    }
+
+    function updateAssembled() {
+        if (!selectedPrompt) {
+            assembledOutput.textContent = "";
+            return;
+        }
+        const output = replacePlaceholders(selectedPrompt.base_prompt, parameterValues);
+        assembledOutput.textContent = output;
+    }
+
+    // Copy
+    async function copyToClipboard() {
+        try {
+            await navigator.clipboard.writeText(assembledOutput.textContent || "");
+        } catch (err) {
+            console.error(err);
+            alert("Copy failed. Your browser may not allow clipboard access.");
+        }
+    }
+
+    // Modal Helpers
+    function clearModal() {
+        if (!promptModal) return;
+        promptIdEl.value = "";
+        promptTitleEl.value = "";
+        promptDescriptionEl.value = "";
+        promptBaseEl.value = "";
+        paramFields.innerHTML = "";
+    }
+
+    function fillModal(prompt) {
+        if (!promptModal) return;
+        promptIdEl.value = prompt.id || "";
+        promptTitleEl.value = sanitize(prompt.title);
+        promptDescriptionEl.value = sanitize(prompt.description);
+        promptBaseEl.value = sanitize(prompt.base_prompt);
+        paramFields.innerHTML = "";
+        const parameters = Array.isArray(prompt.parameters) ? prompt.parameters : [];
+        parameters.forEach(name => addParamField(name));
+    }
+
+    function addParamField(defaultName = "") {
+        const row = document.createElement("div");
+        row.className = "input-group mb-2";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "form-control";
+        input.placeholder = "parameter_name";
+        input.value = defaultName;
+
+        const btnWrap = document.createElement("button");
+        btnWrap.type = "button";
+        btnWrap.className = "btn btn-outline-danger";
+        btnWrap.textContent = "Remove";
+        btnWrap.addEventListener("click", () => row.remove());
+
+        row.appendChild(input);
+        row.appendChild(btnWrap);
+        paramFields.appendChild(row);
+    }
+
+    function readParametersFromModal() {
+        const names = [];
+        paramFields.querySelectorAll("input[type='text']").forEach(inp => {
+            const name = sanitize(inp.value).trim();
+            if (name && !names.includes(name)) names.push(name);
+        });
+        return names;
+    }
+
+    // CRUD
+    async function savePrompt() {
+        const body = {
+            title: sanitize(promptTitleEl.value).trim(),
+            description: sanitize(promptDescriptionEl.value).trim(),
+            base_prompt: sanitize(promptBaseEl.value),
+            parameters: readParametersFromModal()
+        };
+
+        const id = sanitize(promptIdEl.value).trim();
+        if (id) body.id = id;
+
+        try {
+            const res = await fetch(`${apiBase}/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+            const data = await res.json();
+            await loadPrompts();
+            if (data && data.prompt) {
+                // attempt to reselect
+                const updated = prompts.find(p => p.id === data.prompt.id);
+                if (updated) selectPrompt(updated);
+            }
+            if (promptModal) promptModal.hide();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save prompt.");
+        }
+    }
+
+    async function deleteSelectedPrompt() {
+        if (!selectedPrompt) return;
+        if (!confirm(`Delete prompt "${selectedPrompt.title}"?`)) return;
+        try {
+            const res = await fetch(`${apiBase}/${encodeURIComponent(selectedPrompt.id)}`, { method: "DELETE" });
+            if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+            await loadPrompts();
+            clearDetail();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to delete prompt.");
+        }
+    }
+
+    // Event bindings
+    if (searchInput) {
+        searchInput.addEventListener("input", () => renderList());
+    }
+
+    if (copyBtn) {
+        copyBtn.addEventListener("click", copyToClipboard);
+    }
+
+    if (addPromptBtn && promptModal) {
+        addPromptBtn.addEventListener("click", () => {
+            promptModalTitle.textContent = "Add Prompt";
+            clearModal();
+            addParamField();
+            promptModal.show();
+        });
+    }
+
+    if (editPromptBtn && promptModal) {
+        editPromptBtn.addEventListener("click", () => {
+            if (!selectedPrompt) return;
+            promptModalTitle.textContent = "Edit Prompt";
+            clearModal();
+            fillModal(selectedPrompt);
+            promptModal.show();
+        });
+    }
+
+    if (deletePromptBtn) {
+        deletePromptBtn.addEventListener("click", deleteSelectedPrompt);
+    }
+
+    if (addParamFieldBtn) {
+        addParamFieldBtn.addEventListener("click", () => addParamField());
+    }
+
+    if (savePromptBtn) {
+        savePromptBtn.addEventListener("click", savePrompt);
+    }
+
+    // Init
+    loadPrompts();
+})();
+</file>
+
+<file path="llm_prompt_manager/app/static/style.css">
+body {
+    background-color: #fafafa;
+}
+</file>
+
+<file path="llm_prompt_manager/app/templates/index.html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LLM Prompt Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .sidebar {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .parameters textarea {
+            min-height: 80px;
+        }
+        #assembledOutput {
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+    </style>
+    <script>
+        window.CSRF_DISABLED = true;
+    </script>
+    <!-- Simple modal templates are defined later in body -->
+    <!-- No inline logic here; kept minimal -->
+    <!-- Using vanilla JS in /static/script.js -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</head>
+<body class="container-fluid py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 m-0">LLM Prompt Manager</h1>
+        <div class="d-flex gap-2">
+            <button id="addPromptBtn" class="btn btn-primary">Add Prompt</button>
+            <button id="editPromptBtn" class="btn btn-outline-secondary" disabled>Edit</button>
+            <button id="deletePromptBtn" class="btn btn-outline-danger" disabled>Delete</button>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <input id="searchInput" type="text" class="form-control mb-2" placeholder="Search prompts...">
+            <ul id="promptList" class="list-group sidebar"></ul>
+        </div>
+        <div class="col-md-8">
+            <div id="detailView" class="card">
+                <div class="card-body">
+                    <h5 id="detailTitle" class="card-title">Select a prompt</h5>
+                    <p id="detailDescription" class="text-muted"></p>
+                    <div id="parametersContainer" class="parameters"></div>
+                    <div class="mt-3">
+                        <label class="form-label">Assembled Output</label>
+                        <pre id="assembledOutput" class="form-control"></pre>
+                    </div>
+                    <div class="mt-3 d-flex gap-2">
+                        <button id="copyBtn" class="btn btn-success" disabled>Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="promptModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="promptModalTitle">Add Prompt</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="promptForm">
+              <input type="hidden" id="promptId">
+              <div class="mb-3">
+                <label for="promptTitle" class="form-label">Title</label>
+                <input type="text" class="form-control" id="promptTitle" required>
+              </div>
+              <div class="mb-3">
+                <label for="promptDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="promptDescription" rows="2" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="promptBase" class="form-label">Base Prompt</label>
+                <textarea class="form-control" id="promptBase" rows="6" required></textarea>
+              </div>
+              <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <label class="form-label m-0">Parameters</label>
+                  <button id="addParamFieldBtn" type="button" class="btn btn-sm btn-outline-primary">Add Parameter</button>
+                </div>
+                <div id="paramFields" class="mt-2"></div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" id="savePromptBtn" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
+</file>
+
+<file path="llm_prompt_manager/app/__init__.py">
+#### `app/__init__.py`
+</file>
+
+<file path="llm_prompt_manager/app/api.py">
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Literal
+from .models import Prompt, PromptCreate, PromptUpdate
+from . import crud
+
+router = APIRouter(prefix="/api/prompts", tags=["prompts"])
+
+
+@router.get("/")
+def list_prompts():
+    return crud.get_all_prompts()
+
+
+@router.get("/{prompt_id}")
+def get_prompt(prompt_id: str):
+    prompt = crud.get_prompt_by_id(prompt_id)
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    return prompt
+
+
+class OperationResult(BaseModel):
+    status: Literal["created", "updated"]
+    prompt: Prompt
+
+
+@router.post("/", response_model=OperationResult)
+def create_or_update_prompt(data: dict):
+    """Handles both add and edit depending on if 'id' is present, with validation."""
+    # Validate input using Pydantic models
+    if "id" in data and data["id"]:
+        valid = PromptUpdate(**data)
+        updated = crud.update_prompt(valid.dict())
+        if not updated:
+            raise HTTPException(status_code=404, detail="Prompt not found for update")
+        return {"status": "updated", "prompt": updated}
+    else:
+        valid = PromptCreate(**data)
+        # Create a new Prompt (auto-generates UUID)
+        prompt = Prompt(**valid.dict()).dict()
+        created = crud.add_prompt(prompt)
+        return {"status": "created", "prompt": created}
+
+
+@router.delete("/{prompt_id}")
+def delete_prompt(prompt_id: str):
+    deleted = crud.delete_prompt(prompt_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Prompt not found for deletion")
+    return {"status": "deleted"}
+</file>
+
+<file path="llm_prompt_manager/app/crud.py">
+from .models import Prompt
+from .utils import ensure_data_file, load_json, save_json_safe
+
+
+def get_all_prompts():
+    file_path = ensure_data_file()
+    return load_json(file_path)
+
+
+def get_prompt_by_id(prompt_id: str):
+    prompts = get_all_prompts()
+    for prompt in prompts:
+        if prompt["id"] == prompt_id:
+            return prompt
+    return None
+
+
+def add_prompt(prompt_data: dict):
+    prompts = get_all_prompts()
+    prompts.append(prompt_data)
+    save_json_safe(prompts, ensure_data_file())
+    return prompt_data
+
+
+def update_prompt(updated_prompt: dict):
+    prompts = get_all_prompts()
+    for i, prompt in enumerate(prompts):
+        if prompt["id"] == updated_prompt["id"]:
+            prompts[i] = updated_prompt
+            save_json_safe(prompts, ensure_data_file())
+            return updated_prompt
+    return None
+
+
+def delete_prompt(prompt_id: str):
+    prompts = get_all_prompts()
+    updated_prompts = [p for p in prompts if p["id"] != prompt_id]
+    save_json_safe(updated_prompts, ensure_data_file())
+    return len(updated_prompts) < len(prompts)
+</file>
+
+<file path="llm_prompt_manager/app/main.py">
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pathlib import Path
+
+from .api import router as prompt_router
+from .utils import ensure_data_file
+
+app = FastAPI(title="LLM Prompt Manager")
+
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+
+# Include prompt API
+app.include_router(prompt_router)
+
+@app.on_event("startup")
+def startup_event():
+    ensure_data_file()
+
+@app.get("/")
+async def index(request: Request):
+    """Render main UI."""
+    return templates.TemplateResponse("index.html", {"request": request})
+</file>
+
+<file path="llm_prompt_manager/app/models.py">
+from pydantic import BaseModel, Field
+from typing import List, Optional
+import uuid
+
+
+class PromptBase(BaseModel):
+    title: str
+    description: str
+    base_prompt: str
+    parameters: List[str] = Field(default_factory=list)
+
+
+class Prompt(PromptBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+
+class PromptCreate(PromptBase):
+    pass
+
+
+class PromptUpdate(PromptBase):
+    id: str
+</file>
+
+<file path="llm_prompt_manager/app/utils.py">
+from pathlib import Path
+import json
+import os
+import tempfile
+
+DATA_FILE = Path(__file__).resolve().parent / "data" / "prompts.json"
+
+
+def ensure_data_file():
+    """Create prompts.json if it doesn't exist."""
+    if not DATA_FILE.exists():
+        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        DATA_FILE.write_text("[]", encoding="utf-8")
+    return DATA_FILE
+
+
+def load_json(file_path: Path):
+    """Load JSON safely."""
+    if not file_path.exists():
+        return []
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_json_safe(data, file_path: Path):
+    """
+    Write JSON atomically and corruption-proof:
+    - Write to a secure temporary file in same directory
+    - Flush + fsync
+    - Atomically replace target file
+    """
+    dir_name = file_path.parent
+    with tempfile.NamedTemporaryFile("w", delete=False, dir=dir_name, encoding="utf-8") as tmp:
+        json.dump(data, tmp, indent=2)
+        tmp.flush()
+        os.fsync(tmp.fileno())
+        tmp_path = tmp.name
+
+    os.replace(tmp_path, file_path)
+</file>
+
+<file path="llm_prompt_manager/tests/test_api.py">
+#### `tests/test_api.py`
+
+from fastapi.testclient import TestClient
+from llm_prompt_manager.app.main import app
+import uuid
+
+
+client = TestClient(app)
+
+
+def test_list_prompts():
+    r = client.get("/api/prompts/")
+    assert r.status_code == 200
+    assert isinstance(r.json(), list)
+
+
+def test_create_update_delete_prompt():
+    # Create
+    payload = {
+        "title": "Test Title",
+        "description": "Test Description",
+        "base_prompt": "Hello, {{name}}!",
+        "parameters": ["name"]
+    }
+    r = client.post("/api/prompts/", json=payload)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["status"] == "created"
+    created_prompt = data["prompt"]
+    assert created_prompt["id"]
+
+    # Get one
+    r = client.get(f"/api/prompts/{created_prompt['id']}")
+    assert r.status_code == 200
+    assert r.json()["title"] == payload["title"]
+
+    # Update
+    updated = {**created_prompt, "title": "Updated Title"}
+    r = client.post("/api/prompts/", json=updated)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["status"] == "updated"
+    assert data["prompt"]["title"] == "Updated Title"
+
+    # Delete
+    r = client.delete(f"/api/prompts/{created_prompt['id']}")
+    assert r.status_code == 200
+    # Ensure it's gone
+    r = client.get(f"/api/prompts/{created_prompt['id']}")
+    assert r.status_code == 404
+</file>
+
+<file path="llm_prompt_manager.env/bin/activate">
+# This file must be used with "source bin/activate" *from bash*
+# you cannot run it directly
+
+deactivate () {
+    # reset old environment variables
+    if [ -n "${_OLD_VIRTUAL_PATH:-}" ] ; then
+        PATH="${_OLD_VIRTUAL_PATH:-}"
+        export PATH
+        unset _OLD_VIRTUAL_PATH
+    fi
+    if [ -n "${_OLD_VIRTUAL_PYTHONHOME:-}" ] ; then
+        PYTHONHOME="${_OLD_VIRTUAL_PYTHONHOME:-}"
+        export PYTHONHOME
+        unset _OLD_VIRTUAL_PYTHONHOME
+    fi
+
+    # Call hash to forget past commands. Without forgetting
+    # past commands the $PATH changes we made may not be respected
+    hash -r 2> /dev/null
+
+    if [ -n "${_OLD_VIRTUAL_PS1:-}" ] ; then
+        PS1="${_OLD_VIRTUAL_PS1:-}"
+        export PS1
+        unset _OLD_VIRTUAL_PS1
+    fi
+
+    unset VIRTUAL_ENV
+    unset VIRTUAL_ENV_PROMPT
+    if [ ! "${1:-}" = "nondestructive" ] ; then
+    # Self destruct!
+        unset -f deactivate
+    fi
+}
+
+# unset irrelevant variables
+deactivate nondestructive
+
+VIRTUAL_ENV="/Users/michaelbertagna/git/prompter/llm_prompt_manager.env"
+export VIRTUAL_ENV
+
+_OLD_VIRTUAL_PATH="$PATH"
+PATH="$VIRTUAL_ENV/bin:$PATH"
+export PATH
+
+# unset PYTHONHOME if set
+# this will fail if PYTHONHOME is set to the empty string (which is bad anyway)
+# could use `if (set -u; : $PYTHONHOME) ;` in bash
+if [ -n "${PYTHONHOME:-}" ] ; then
+    _OLD_VIRTUAL_PYTHONHOME="${PYTHONHOME:-}"
+    unset PYTHONHOME
+fi
+
+if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then
+    _OLD_VIRTUAL_PS1="${PS1:-}"
+    PS1="(llm_prompt_manager.env) ${PS1:-}"
+    export PS1
+    VIRTUAL_ENV_PROMPT="(llm_prompt_manager.env) "
+    export VIRTUAL_ENV_PROMPT
+fi
+
+# Call hash to forget past commands. Without forgetting
+# past commands the $PATH changes we made may not be respected
+hash -r 2> /dev/null
+</file>
+
+<file path="llm_prompt_manager.env/bin/activate.csh">
+# This file must be used with "source bin/activate.csh" *from csh*.
+# You cannot run it directly.
+# Created by Davide Di Blasi <davidedb@gmail.com>.
+# Ported to Python 3.3 venv by Andrew Svetlov <andrew.svetlov@gmail.com>
+
+alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PATH" && unset _OLD_VIRTUAL_PATH; rehash; test $?_OLD_VIRTUAL_PROMPT != 0 && set prompt="$_OLD_VIRTUAL_PROMPT" && unset _OLD_VIRTUAL_PROMPT; unsetenv VIRTUAL_ENV; unsetenv VIRTUAL_ENV_PROMPT; test "\!:*" != "nondestructive" && unalias deactivate'
+
+# Unset irrelevant variables.
+deactivate nondestructive
+
+setenv VIRTUAL_ENV "/Users/michaelbertagna/git/prompter/llm_prompt_manager.env"
+
+set _OLD_VIRTUAL_PATH="$PATH"
+setenv PATH "$VIRTUAL_ENV/bin:$PATH"
+
+
+set _OLD_VIRTUAL_PROMPT="$prompt"
+
+if (! "$?VIRTUAL_ENV_DISABLE_PROMPT") then
+    set prompt = "(llm_prompt_manager.env) $prompt"
+    setenv VIRTUAL_ENV_PROMPT "(llm_prompt_manager.env) "
+endif
+
+alias pydoc python -m pydoc
+
+rehash
+</file>
+
+<file path="llm_prompt_manager.env/bin/activate.fish">
+# This file must be used with "source <venv>/bin/activate.fish" *from fish*
+# (https://fishshell.com/); you cannot run it directly.
+
+function deactivate  -d "Exit virtual environment and return to normal shell environment"
+    # reset old environment variables
+    if test -n "$_OLD_VIRTUAL_PATH"
+        set -gx PATH $_OLD_VIRTUAL_PATH
+        set -e _OLD_VIRTUAL_PATH
+    end
+    if test -n "$_OLD_VIRTUAL_PYTHONHOME"
+        set -gx PYTHONHOME $_OLD_VIRTUAL_PYTHONHOME
+        set -e _OLD_VIRTUAL_PYTHONHOME
+    end
+
+    if test -n "$_OLD_FISH_PROMPT_OVERRIDE"
+        set -e _OLD_FISH_PROMPT_OVERRIDE
+        # prevents error when using nested fish instances (Issue #93858)
+        if functions -q _old_fish_prompt
+            functions -e fish_prompt
+            functions -c _old_fish_prompt fish_prompt
+            functions -e _old_fish_prompt
+        end
+    end
+
+    set -e VIRTUAL_ENV
+    set -e VIRTUAL_ENV_PROMPT
+    if test "$argv[1]" != "nondestructive"
+        # Self-destruct!
+        functions -e deactivate
+    end
+end
+
+# Unset irrelevant variables.
+deactivate nondestructive
+
+set -gx VIRTUAL_ENV "/Users/michaelbertagna/git/prompter/llm_prompt_manager.env"
+
+set -gx _OLD_VIRTUAL_PATH $PATH
+set -gx PATH "$VIRTUAL_ENV/bin" $PATH
+
+# Unset PYTHONHOME if set.
+if set -q PYTHONHOME
+    set -gx _OLD_VIRTUAL_PYTHONHOME $PYTHONHOME
+    set -e PYTHONHOME
+end
+
+if test -z "$VIRTUAL_ENV_DISABLE_PROMPT"
+    # fish uses a function instead of an env var to generate the prompt.
+
+    # Save the current fish_prompt function as the function _old_fish_prompt.
+    functions -c fish_prompt _old_fish_prompt
+
+    # With the original prompt function renamed, we can override with our own.
+    function fish_prompt
+        # Save the return status of the last command.
+        set -l old_status $status
+
+        # Output the venv prompt; color taken from the blue of the Python logo.
+        printf "%s%s%s" (set_color 4B8BBE) "(llm_prompt_manager.env) " (set_color normal)
+
+        # Restore the return status of the previous command.
+        echo "exit $old_status" | .
+        # Output the original/"old" prompt.
+        _old_fish_prompt
+    end
+
+    set -gx _OLD_FISH_PROMPT_OVERRIDE "$VIRTUAL_ENV"
+    set -gx VIRTUAL_ENV_PROMPT "(llm_prompt_manager.env) "
+end
+</file>
+
+<file path="llm_prompt_manager.env/bin/Activate.ps1">
+<#
+.Synopsis
+Activate a Python virtual environment for the current PowerShell session.
+
+.Description
+Pushes the python executable for a virtual environment to the front of the
+$Env:PATH environment variable and sets the prompt to signify that you are
+in a Python virtual environment. Makes use of the command line switches as
+well as the `pyvenv.cfg` file values present in the virtual environment.
+
+.Parameter VenvDir
+Path to the directory that contains the virtual environment to activate. The
+default value for this is the parent of the directory that the Activate.ps1
+script is located within.
+
+.Parameter Prompt
+The prompt prefix to display when this virtual environment is activated. By
+default, this prompt is the name of the virtual environment folder (VenvDir)
+surrounded by parentheses and followed by a single space (ie. '(.venv) ').
+
+.Example
+Activate.ps1
+Activates the Python virtual environment that contains the Activate.ps1 script.
+
+.Example
+Activate.ps1 -Verbose
+Activates the Python virtual environment that contains the Activate.ps1 script,
+and shows extra information about the activation as it executes.
+
+.Example
+Activate.ps1 -VenvDir C:\Users\MyUser\Common\.venv
+Activates the Python virtual environment located in the specified location.
+
+.Example
+Activate.ps1 -Prompt "MyPython"
+Activates the Python virtual environment that contains the Activate.ps1 script,
+and prefixes the current prompt with the specified string (surrounded in
+parentheses) while the virtual environment is active.
+
+.Notes
+On Windows, it may be required to enable this Activate.ps1 script by setting the
+execution policy for the user. You can do this by issuing the following PowerShell
+command:
+
+PS C:\> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+For more information on Execution Policies: 
+https://go.microsoft.com/fwlink/?LinkID=135170
+
+#>
+Param(
+    [Parameter(Mandatory = $false)]
+    [String]
+    $VenvDir,
+    [Parameter(Mandatory = $false)]
+    [String]
+    $Prompt
+)
+
+<# Function declarations --------------------------------------------------- #>
+
+<#
+.Synopsis
+Remove all shell session elements added by the Activate script, including the
+addition of the virtual environment's Python executable from the beginning of
+the PATH variable.
+
+.Parameter NonDestructive
+If present, do not remove this function from the global namespace for the
+session.
+
+#>
+function global:deactivate ([switch]$NonDestructive) {
+    # Revert to original values
+
+    # The prior prompt:
+    if (Test-Path -Path Function:_OLD_VIRTUAL_PROMPT) {
+        Copy-Item -Path Function:_OLD_VIRTUAL_PROMPT -Destination Function:prompt
+        Remove-Item -Path Function:_OLD_VIRTUAL_PROMPT
+    }
+
+    # The prior PYTHONHOME:
+    if (Test-Path -Path Env:_OLD_VIRTUAL_PYTHONHOME) {
+        Copy-Item -Path Env:_OLD_VIRTUAL_PYTHONHOME -Destination Env:PYTHONHOME
+        Remove-Item -Path Env:_OLD_VIRTUAL_PYTHONHOME
+    }
+
+    # The prior PATH:
+    if (Test-Path -Path Env:_OLD_VIRTUAL_PATH) {
+        Copy-Item -Path Env:_OLD_VIRTUAL_PATH -Destination Env:PATH
+        Remove-Item -Path Env:_OLD_VIRTUAL_PATH
+    }
+
+    # Just remove the VIRTUAL_ENV altogether:
+    if (Test-Path -Path Env:VIRTUAL_ENV) {
+        Remove-Item -Path env:VIRTUAL_ENV
+    }
+
+    # Just remove VIRTUAL_ENV_PROMPT altogether.
+    if (Test-Path -Path Env:VIRTUAL_ENV_PROMPT) {
+        Remove-Item -Path env:VIRTUAL_ENV_PROMPT
+    }
+
+    # Just remove the _PYTHON_VENV_PROMPT_PREFIX altogether:
+    if (Get-Variable -Name "_PYTHON_VENV_PROMPT_PREFIX" -ErrorAction SilentlyContinue) {
+        Remove-Variable -Name _PYTHON_VENV_PROMPT_PREFIX -Scope Global -Force
+    }
+
+    # Leave deactivate function in the global namespace if requested:
+    if (-not $NonDestructive) {
+        Remove-Item -Path function:deactivate
+    }
+}
+
+<#
+.Description
+Get-PyVenvConfig parses the values from the pyvenv.cfg file located in the
+given folder, and returns them in a map.
+
+For each line in the pyvenv.cfg file, if that line can be parsed into exactly
+two strings separated by `=` (with any amount of whitespace surrounding the =)
+then it is considered a `key = value` line. The left hand string is the key,
+the right hand is the value.
+
+If the value starts with a `'` or a `"` then the first and last character is
+stripped from the value before being captured.
+
+.Parameter ConfigDir
+Path to the directory that contains the `pyvenv.cfg` file.
+#>
+function Get-PyVenvConfig(
+    [String]
+    $ConfigDir
+) {
+    Write-Verbose "Given ConfigDir=$ConfigDir, obtain values in pyvenv.cfg"
+
+    # Ensure the file exists, and issue a warning if it doesn't (but still allow the function to continue).
+    $pyvenvConfigPath = Join-Path -Resolve -Path $ConfigDir -ChildPath 'pyvenv.cfg' -ErrorAction Continue
+
+    # An empty map will be returned if no config file is found.
+    $pyvenvConfig = @{ }
+
+    if ($pyvenvConfigPath) {
+
+        Write-Verbose "File exists, parse `key = value` lines"
+        $pyvenvConfigContent = Get-Content -Path $pyvenvConfigPath
+
+        $pyvenvConfigContent | ForEach-Object {
+            $keyval = $PSItem -split "\s*=\s*", 2
+            if ($keyval[0] -and $keyval[1]) {
+                $val = $keyval[1]
+
+                # Remove extraneous quotations around a string value.
+                if ("'""".Contains($val.Substring(0, 1))) {
+                    $val = $val.Substring(1, $val.Length - 2)
+                }
+
+                $pyvenvConfig[$keyval[0]] = $val
+                Write-Verbose "Adding Key: '$($keyval[0])'='$val'"
+            }
+        }
+    }
+    return $pyvenvConfig
+}
+
+
+<# Begin Activate script --------------------------------------------------- #>
+
+# Determine the containing directory of this script
+$VenvExecPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$VenvExecDir = Get-Item -Path $VenvExecPath
+
+Write-Verbose "Activation script is located in path: '$VenvExecPath'"
+Write-Verbose "VenvExecDir Fullname: '$($VenvExecDir.FullName)"
+Write-Verbose "VenvExecDir Name: '$($VenvExecDir.Name)"
+
+# Set values required in priority: CmdLine, ConfigFile, Default
+# First, get the location of the virtual environment, it might not be
+# VenvExecDir if specified on the command line.
+if ($VenvDir) {
+    Write-Verbose "VenvDir given as parameter, using '$VenvDir' to determine values"
+}
+else {
+    Write-Verbose "VenvDir not given as a parameter, using parent directory name as VenvDir."
+    $VenvDir = $VenvExecDir.Parent.FullName.TrimEnd("\\/")
+    Write-Verbose "VenvDir=$VenvDir"
+}
+
+# Next, read the `pyvenv.cfg` file to determine any required value such
+# as `prompt`.
+$pyvenvCfg = Get-PyVenvConfig -ConfigDir $VenvDir
+
+# Next, set the prompt from the command line, or the config file, or
+# just use the name of the virtual environment folder.
+if ($Prompt) {
+    Write-Verbose "Prompt specified as argument, using '$Prompt'"
+}
+else {
+    Write-Verbose "Prompt not specified as argument to script, checking pyvenv.cfg value"
+    if ($pyvenvCfg -and $pyvenvCfg['prompt']) {
+        Write-Verbose "  Setting based on value in pyvenv.cfg='$($pyvenvCfg['prompt'])'"
+        $Prompt = $pyvenvCfg['prompt'];
+    }
+    else {
+        Write-Verbose "  Setting prompt based on parent's directory's name. (Is the directory name passed to venv module when creating the virtual environment)"
+        Write-Verbose "  Got leaf-name of $VenvDir='$(Split-Path -Path $venvDir -Leaf)'"
+        $Prompt = Split-Path -Path $venvDir -Leaf
+    }
+}
+
+Write-Verbose "Prompt = '$Prompt'"
+Write-Verbose "VenvDir='$VenvDir'"
+
+# Deactivate any currently active virtual environment, but leave the
+# deactivate function in place.
+deactivate -nondestructive
+
+# Now set the environment variable VIRTUAL_ENV, used by many tools to determine
+# that there is an activated venv.
+$env:VIRTUAL_ENV = $VenvDir
+
+if (-not $Env:VIRTUAL_ENV_DISABLE_PROMPT) {
+
+    Write-Verbose "Setting prompt to '$Prompt'"
+
+    # Set the prompt to include the env name
+    # Make sure _OLD_VIRTUAL_PROMPT is global
+    function global:_OLD_VIRTUAL_PROMPT { "" }
+    Copy-Item -Path function:prompt -Destination function:_OLD_VIRTUAL_PROMPT
+    New-Variable -Name _PYTHON_VENV_PROMPT_PREFIX -Description "Python virtual environment prompt prefix" -Scope Global -Option ReadOnly -Visibility Public -Value $Prompt
+
+    function global:prompt {
+        Write-Host -NoNewline -ForegroundColor Green "($_PYTHON_VENV_PROMPT_PREFIX) "
+        _OLD_VIRTUAL_PROMPT
+    }
+    $env:VIRTUAL_ENV_PROMPT = $Prompt
+}
+
+# Clear PYTHONHOME
+if (Test-Path -Path Env:PYTHONHOME) {
+    Copy-Item -Path Env:PYTHONHOME -Destination Env:_OLD_VIRTUAL_PYTHONHOME
+    Remove-Item -Path Env:PYTHONHOME
+}
+
+# Add the venv to the PATH
+Copy-Item -Path Env:PATH -Destination Env:_OLD_VIRTUAL_PATH
+$Env:PATH = "$VenvExecDir$([System.IO.Path]::PathSeparator)$Env:PATH"
+</file>
+
+<file path="llm_prompt_manager.env/bin/fastapi">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from fastapi.cli import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/httpx">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from httpx import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/pip">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pip._internal.cli.main import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/pip3">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pip._internal.cli.main import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/pip3.11">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pip._internal.cli.main import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/py.test">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pytest import console_main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(console_main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/pygmentize">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pygments.cmdline import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/pytest">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pytest import console_main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(console_main())
+</file>
+
+<file path="llm_prompt_manager.env/bin/uvicorn">
+#!/Users/michaelbertagna/git/prompter/llm_prompt_manager.env/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from uvicorn.main import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+</file>
+
+<file path="llm_prompt_manager.env/pyvenv.cfg">
+home = /opt/anaconda3/bin
+include-system-site-packages = false
+version = 3.11.8
+executable = /opt/anaconda3/bin/python3.11
+command = /opt/anaconda3/bin/python3.11 -m venv /Users/michaelbertagna/git/prompter/llm_prompt_manager.env
+</file>
+
+<file path="PLAN.md">
+🔧 Implementation Plan for LLM Prompt Manager
+
+1. Project Structure
+
+Organize the app for maintainability, modularity, and clarity.
+
+llm_prompt_manager/
+│
+├── app/
+│   ├── main.py                # FastAPI entry point (routes, startup/shutdown)
+│   ├── models.py              # Data models (Prompt schema, Pydantic models)
+│   ├── crud.py                # File I/O operations for prompts.json
+│   ├── api.py                 # API endpoints (CRUD operations)
+│   ├── utils.py               # Helper functions (UUID, file safety, etc.)
+│   ├── templates/
+│   │   └── index.html         # Main Jinja2 HTML template
+│   ├── static/
+│   │   ├── style.css          # Optional: extra styles beyond Bootstrap
+│   │   └── script.js          # Vanilla JS logic (search, substitution, copy, modals)
+│   └── data/
+│       └── prompts.json       # Persistent prompt data (created on first run)
+│
+├── tests/
+│   └── test_api.py            # Unit tests for API and CRUD
+│
+├── requirements.txt
+└── README.md
+
+
+⸻
+
+2. Backend Implementation
+
+2.1 main.py
+	•	Initialize FastAPI app.
+	•	Mount static and template directories.
+	•	Include router from api.py.
+	•	On startup:
+	•	Check if prompts.json exists; if not, create an empty array [].
+	•	On shutdown:
+	•	Optionally flush in-memory cache (if caching is used).
+
+2.2 models.py
+	•	Define a Prompt Pydantic model:
+
+class Prompt(BaseModel):
+    id: str
+    title: str
+    description: str
+    base_prompt: str
+    parameters: List[str]
+
+
+	•	Define optional PromptCreate and PromptUpdate schemas for clean CRUD operations.
+
+2.3 crud.py
+
+Handles file-safe CRUD operations:
+	•	Load prompts (load_prompts())
+	•	Save prompts (save_prompts_safe())
+	•	Write to a temporary file (e.g., prompts.tmp.json), then rename to prompts.json.
+	•	Add, edit, delete functions that manipulate the list and call save.
+
+Example:
+
+def save_prompts_safe(prompts, file_path):
+    tmp = file_path + ".tmp"
+    with open(tmp, 'w') as f:
+        json.dump(prompts, f, indent=2)
+    os.replace(tmp, file_path)
+
+
+⸻
+
+3. API Implementation (api.py)
+
+Operation	Method	Endpoint	Behavior
+List all prompts	GET	/api/prompts	Return all prompts
+Get one prompt	GET	/api/prompts/{id}	Return prompt by ID
+Add prompt	POST	/api/prompts	Create a new prompt, generate UUID
+Update prompt	POST	/api/prompts	Overwrite existing prompt matching ID
+Delete prompt	DELETE	/api/prompts/{id}	Remove from file and memory
+
+Use FastAPI’s built-in response models for automatic validation and OpenAPI documentation.
+
+⸻
+
+4. Frontend Implementation
+
+4.1 index.html (Jinja2)
+	•	Simple two-panel layout:
+	•	Left panel: list of prompt titles with a search box.
+	•	Right panel: detail view (title, description, editable parameters, live assembled output).
+	•	Use Bootstrap layout grid (col-md-4 / col-md-8) and modals for “Add/Edit Prompt.”
+
+4.2 script.js
+
+Implements:
+	•	Fetch all prompts from /api/prompts and populate sidebar.
+	•	Filter list client-side using a search input (text matching title/description).
+	•	Load selected prompt into detail view.
+	•	Dynamically create parameter input boxes (textarea per parameter).
+	•	Real-time substitution using:
+
+const assembled = basePrompt.replace(/{{(.*?)}}/g, (_, key) => formValues[key] || '');
+
+
+	•	Copy-to-clipboard functionality with navigator.clipboard.writeText().
+
+4.3 Modal forms
+	•	Triggered by “Add” or “Edit” buttons.
+	•	Support dynamic parameter addition/removal.
+	•	On submit, POST to /api/prompts.
+
+⸻
+
+5. Data Flow Overview
+	1.	User opens app → Frontend fetches all prompts via /api/prompts.
+	2.	User selects a prompt → JS loads prompt details and parameters.
+	3.	User types into parameter boxes → JS substitutes values live in assembled preview.
+	4.	User clicks “Copy” → Prompt text copied to clipboard.
+	5.	User adds/edits/deletes a prompt → Backend updates prompts.json safely.
+
+⸻
+
+6. Testing Plan
+
+6.1 Unit Tests
+	•	CRUD operations on test JSON files (ensure safe overwrite).
+	•	API endpoint tests with FastAPI TestClient.
+
+6.2 Frontend Tests (optional)
+	•	Basic JS integration test using Playwright or Cypress (optional for local utility).
+
+⸻
+
+7. Enhancement Hooks (Future)
+	•	Add categories/tags for better organization.
+	•	Export/import functionality (JSON).
+	•	Version history (simple diff system in file).
+	•	Parameter templates or autocomplete.
+
+⸻
+
+8. Implementation Order
+	1.	Initialize project structure.
+	2.	Implement models.py, crud.py, api.py.
+	3.	Build FastAPI app (main.py).
+	4.	Create index.html with static JS logic.
+	5.	Connect frontend to API.
+	6.	Add modal forms and live substitution logic.
+	7.	Implement file safety and basic tests.
+	8.	Polish UI (Bootstrap, responsiveness).
+</file>
+
+<file path="README.md">
+# LLM Prompt Manager
+
+A lightweight local web app for managing and assembling reusable LLM prompts.
+
+## Quick Start
+```bash
+python3.11 -m venv llm_prompt_manager.env
+source llm_prompt_manager.env/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Open the app at `http://127.0.0.1:8000/`.
+
+## Features
+- Manage prompts with title, description, base prompt, and parameters.
+- Search prompts client-side.
+- Dynamic parameter inputs with live substitution into the base prompt using `{{parameter_name}}` syntax.
+- Copy the final assembled prompt to clipboard.
+- File-backed storage (`app/data/prompts.json`) with safe atomic writes.
+
+## API
+- GET `/api/prompts/`: List all prompts
+- GET `/api/prompts/{id}`: Get a prompt by ID
+- POST `/api/prompts/`: Create or update (include `id` for update)
+- DELETE `/api/prompts/{id}`: Delete a prompt
+
+## Run tests
+```bash
+python -m pytest -q llm_prompt_manager/tests
+```
+</file>
+
+<file path="requirements.txt">
+fastapi
+uvicorn
+jinja2
+python-multipart
+pytest
+httpx
+</file>
+
+<file path="SPEC.md">
+Concise Application Specification
+1. Core Architecture & Technology
+| Component | Detail | Rationale |
+|---|---|---|
+| Application Type | Local Web Application (FastAPI) | Provides a searchable interface with dynamic forms. |
+| Language | Python | Portable and simple for utility development. |
+| Frontend | Jinja2 Templates, HTML, Bootstrap CSS, Vanilla JavaScript | Simple and dependency-free for client-side interactivity. |
+| Persistence | File I/O only (No external database) | Ensures maximum portability via Git; data is stored next to the code. |
+| File Safety | Temporary file write mechanism (FastAPI backend) | Prevents data corruption of prompts.json during save operations. |
+2. Data Structure & Storage
+| Element | Detail | Rationale |
+|---|---|---|
+| Data File | prompts.json | Human-readable, easy to version control and parse. |
+| Prompt Structure | JSON array of objects | Stores all required metadata for each prompt. |
+| Placeholders | Jinja-style: {{parameter_name}} | Clear, standard syntax for substitution within the base_prompt. |
+| Prompt ID | UUID (FastAPI generated) | Ensures a unique key for CRUD operations. |
+3. User Interface (UI) Features
+| Feature | Detail | Implementation |
+|---|---|---|
+| Prompt Listing | Left-hand panel displays all prompts. | Uses a simple HTML list and client-side JavaScript to load details. |
+| Search/Filter | Real-time text input filter. | Client-side JavaScript (in index.html) filters the visible list items based on title/description. |
+| Parameter Inputs | All parameters use a multi-line, scrollable textarea element. | Simple design choice that accommodates both short and long inputs. |
+| Prompt Assembly | Real-time substitution. | Client-side JavaScript updates the output box immediately on every keystroke. |
+| Final Output | Copy Button (sole function). | Copies the final assembled prompt text to the user's clipboard via navigator.clipboard.writeText(). |
+4. Data Management (CRUD)
+| Operation | Method / Endpoint | Detail |
+|---|---|---|
+| Add New Prompt | POST /api/prompts | Opens a modal form, generates a new uuid, and saves the entry. |
+| Edit Existing | POST /api/prompts | Opens the modal, loads existing data via GET /api/prompts/{id}, and updates the entry by matching the existing ID. |
+| Delete Prompt | DELETE /api/prompts/{id} | Removes the entry from the in-memory list and persists the change to prompts.json. |
+| Parameter Editing | Integrated into the Edit modal | Dynamic UI allows users to add, edit, and remove parameter fields on the fly using vanilla JavaScript. |
+</file>
+
+<file path=".gitattributes">
+# Auto detect text files and perform LF normalization
+* text=auto
+</file>
+
+<file path=".gitignore">
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# UV
+#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#uv.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#pdm.lock
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
+
+# Ruff stuff:
+.ruff_cache/
+
+# PyPI configuration file
+.pypirc
+
+# Cursor  
+#  Cursor is an AI-powered code editor.`.cursorignore` specifies files/directories to 
+#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
+#  refer to https://docs.cursor.com/context/ignore-files
+.cursorignore
+.cursorindexingignore
+</file>
+
+<file path="LICENSE">
+MIT License
+
+Copyright (c) 2025 mbertagna
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</file>
+
+</files>
