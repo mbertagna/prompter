@@ -34,5 +34,16 @@
       "implementation_code"
     ],
     "id": "2f3eda1a-48f8-460a-b9e7-3b1801c1df0b"
+  },
+  {
+    "title": "Atomic Git History Generation (Interactive)",
+    "description": "A three-stage, approval-gated workflow to transform a single, large code change (before/after diff) into a clean, logical set of atomic commits organized across ordered topic branches. This strategy supports a clean, rebasable dependency tree.",
+    "base_prompt": "I have made changes to the **{{TOPIC}}** project. My goal is to organize these changes into a clean, logical set of **atomic Git commits** across multiple **topic branches** for a final push.\n\nYour process will consist of three distinct tasks, each requiring my approval before proceeding to the next.\n\n### Task 1: Code Difference Analysis\n\n1.  **Analyze the changes:** Review the `CODE_BEFORE` and `CODE_AFTER` sections to understand the exact differences in the codebase.\n2.  **Report findings:** Summarize the nature and scope of the changes (e.g., \"Feature X added,\" \"Refactoring of Y module,\" \"Bug Z fixed\").\n3.  **Output:** Present a summary of the differences.\n      * **STOP:** Wait for my approval before proceeding to Task 2. I may ask for revisions or clarifications at this stage.\n\n-----\n\n### Task 2: High-Level Git Organization\n\n  * *This task proceeds only after my approval of Task 1.*\n\n1.  **Determine topics:** Group the changes identified in Task 1 into logical, high-level **topic branches** (e.g., `feature/user-auth`, `refactor/api-cleanup`).\n2.  **Establish ordering:** Decide on the most logical and narrative **ordering** for these topic branches, ensuring a clean dependency tree where each branch builds on the previous one.\n3.  **Output:** Provide a numbered list of the proposed topic branches and their intended order.\n      * **STOP:** Wait for my approval before proceeding to Task 3. I may ask for revisions to the branch structure or ordering.\n\n-----\n\n### Task 3: Atomic Commit Generation\n\n  * *This task proceeds only after my approval of Task 2.*\n\n1.  **Generate atomic commits:** For each approved topic branch, break down the changes into the smallest possible **atomic commits**. The commits must be ordered to tell a clear, logical story.\n2.  **Format the output:** For each generated atomic commit, present two items:\n      * A **one-line commit summary** (max 50 characters).\n      * A list of the specific **files or code snippets** to be included in that commit (i.e., the diff to be staged). Clearly indicate which topic branch the commit belongs to.\n3.  **Dependency Note:** I will be rebasing each successive new topic branch onto the previous one. The commit structure *must* support this clean, sequential dependency tree.\n\n-----\n\n## Code Base\n\nCODE BEFORE:\n{ {{CODE_BEFORE}} }\n\nCODE AFTER:\n{ {{CODE_AFTER}} }",
+    "parameters": [
+      "TOPIC",
+      "CODE_BEFORE",
+      "CODE_AFTER"
+    ],
+    "id": "f22f36c0-f0c7-4d82-ac9a-c474e6afcfec"
   }
 ]
