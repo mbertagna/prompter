@@ -49,7 +49,7 @@
   {
     "title": "Add NumPy-Style Docstrings Without Modifying Code",
     "description": "",
-    "base_prompt": "Add clear and complete NumPy-style docstrings to the provided code.\nInclude docstrings for all files, classes, methods, and functions where applicable.\nUse simple, direct, and concise language in every description.\nDo not modify any existing code or logic\u2014only add docstrings.\n\nCode:\n{ {{CODE}} }",
+    "base_prompt": "Add complete and correct NumPy-style docstrings to the provided code.\n\nFollow these exact rules carefully:\n\n1. **File-level docstring:** At the very top of each file, include a brief description of the file\u2019s purpose, main classes/functions, and any important usage notes.\n2. **Class docstrings:** Describe what the class represents, its main attributes, and its intended use. Include an **Attributes** section listing all key attributes and their types.\n3. **Function and method docstrings:** Include the following NumPy-style sections where applicable:\n   * **Parameters:** List every parameter, its type, and a short, clear explanation.\n   * **Returns:** Describe the return value(s) and their types.\n   * **Raises:** List possible exceptions, if any.\n   * **Examples:** Add a simple example only if it helps clarify functionality.\n4. Use **simple, direct, and concise** language throughout.\n5. **Avoid emojis** and unnecessary phrasing.\n6. **Avoid changing any of the code itself** \u2014 only insert docstrings.\n7. Maintain consistent indentation and formatting so docstrings align properly within the code.\n\nCode:\n{\n{{CODE}}\n}",
     "parameters": [
       "CODE"
     ],
