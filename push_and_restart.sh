@@ -28,3 +28,8 @@ echo "--- Starting new container... ---"
 docker run -d -p 8070:8070 --name my-prompt-manager -v "$(pwd)/llm_prompt_manager/app/data:/code/app/data" prompt-manager
 
 echo "✅ Deployment complete! Changes are pushed and the container is running at http://127.0.0.1:8070/."
+
+# To solve permission issues:
+# sudo chmod 644 llm_prompt_manager/app/data/prompts.json
+# sudo chown $(whoami):$(whoami) llm_prompt_manager/app/data/prompts.json
+
