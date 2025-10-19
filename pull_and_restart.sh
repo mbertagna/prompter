@@ -20,4 +20,4 @@ docker build -t prompt-manager .
 echo "--- Starting new container... ---"
 docker run -d -p 8070:8070 --name my-prompt-manager -v "$(pwd)/llm_prompt_manager/app/data:/code/app/data" prompt-manager
 
-echo "✅ Deployment complete! Container is running with the latest code."
+echo "✅ Deployment complete! Container is running with the latest code at http://127.0.0.1:8070/."
