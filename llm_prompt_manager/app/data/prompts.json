@@ -45,5 +45,14 @@
       "CODE_AFTER"
     ],
     "id": "f22f36c0-f0c7-4d82-ac9a-c474e6afcfec"
+  },
+  {
+    "title": "Add NumPy-Style Docstrings Without Modifying Code",
+    "description": "",
+    "base_prompt": "Add clear and complete NumPy-style docstrings to the provided code.\nInclude docstrings for all files, classes, methods, and functions where applicable.\nUse simple, direct, and concise language in every description.\nDo not modify any existing code or logic\u2014only add docstrings.\n\nCode:\n{ {{CODE}} }",
+    "parameters": [
+      "CODE"
+    ],
+    "id": "039cd1de-bbc8-4529-ae09-a1ade618cee9"
   }
 ]
