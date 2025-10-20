@@ -27,11 +27,12 @@
   {
     "title": "Commit Prompt",
     "description": "",
-    "base_prompt": "Create a commit message that follows exactly the same format and structure as the provided example.\nUse **simple, clear language** and keep all bullet points short and direct.\nAvoid changing any section headers, indentation, or layout \u2014 your goal is to match the style of the example exactly.\nAvoid using any markdown formatting such as bold text, code blocks, or lists. Use plain text only.\nReturn the final commit message **inside a text box**.\n\nExample commit message:\n{ {{example_commit_message}} }\n\nImplementation summary:\n{ {{implementation_summary}} }\n\nImplementation code:\n{ {{implementation_code}} }",
+    "base_prompt": "Create a commit message that follows exactly the same format and structure as the provided example.\nUse **simple, clear language** and keep all bullet points short and direct.\nAvoid changing any section headers, indentation, or layout \u2014 your goal is to match the style of the example exactly.\nAvoid using any markdown formatting such as bold text, code blocks, or lists. Use plain text only.\nReturn the final commit message **inside a text box**.\n\nExample commit message:\n{ {{example_commit_message}} }\n\nImplementation summary:\n{ {{implementation_summary}} }\n\nImplementation code:\n{ {{implementation_code}} }\n\nComplete codebase:\n{ {{complete_codebase}} }",
     "parameters": [
       "example_commit_message",
       "implementation_summary",
-      "implementation_code"
+      "implementation_code",
+      "complete_codebase"
     ],
     "id": "2f3eda1a-48f8-460a-b9e7-3b1801c1df0b"
   },
