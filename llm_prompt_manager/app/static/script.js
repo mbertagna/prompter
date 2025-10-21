@@ -120,10 +120,22 @@
             const wrapper = document.createElement("div");
             wrapper.className = "mb-2";
 
+            // top row with label and clear button
+            const topRow = document.createElement("div");
+            topRow.className = "d-flex align-items-center justify-content-between";
+
             const label = document.createElement("label");
-            label.className = "form-label";
+            label.className = "form-label m-0";
             label.textContent = paramName;
             label.setAttribute("for", `param_${paramName}`);
+
+            const clearBtn = document.createElement("button");
+            clearBtn.type = "button";
+            clearBtn.className = "btn btn-sm btn-outline-secondary";
+            clearBtn.textContent = "Clear";
+
+            topRow.appendChild(label);
+            topRow.appendChild(clearBtn);
 
             const textarea = document.createElement("textarea");
             textarea.className = "form-control";
@@ -134,7 +146,14 @@
                 updateAssembled();
             });
 
-            wrapper.appendChild(label);
+            clearBtn.addEventListener("click", () => {
+                textarea.value = "";
+                parameterValues[paramName] = "";
+                updateAssembled();
+                textarea.focus();
+            });
+
+            wrapper.appendChild(topRow);
             wrapper.appendChild(textarea);
             parametersContainer.appendChild(wrapper);
         });
