@@ -55,5 +55,28 @@
       "CODE"
     ],
     "id": "039cd1de-bbc8-4529-ae09-a1ade618cee9"
+  },
+  {
+    "title": "Cover Letter",
+    "description": "",
+    "base_prompt": "I\u2019m applying to full-time roles and want to create a new cover letter that complements my updated resume. Follow these steps carefully:\n\n1. **Brainstorming Phase:** Help me brainstorm and identify specific examples, experiences, or accomplishments that would make strong additions to my cover letter. Focus on examples that add depth or context beyond what\u2019s already listed on my resume.\n\n2. **Approval Check:** Once you believe we have enough examples, ask me to review and confirm that I\u2019m satisfied with the list before continuing. Do not proceed to writing the cover letter until I explicitly approve.\n\n3. **Cover Letter Creation:** After I approve, use the selected examples to write a polished, tailored cover letter that aligns with my new resume and emphasizes my fit for full-time roles.\n\nMake sure the conversation flows naturally through these steps and pauses appropriately for my input and approval.\n\nResume:\n{\n{{resume}}\n}\n\nOld Cover Letter:\n{\n{{old_cover_letter}}\n}",
+    "parameters": [
+      "resume",
+      "old_cover_letter"
+    ],
+    "id": "347c0861-b871-4457-8941-d36c7f0cf95a"
+  },
+  {
+    "title": "Monkey Patch",
+    "description": "",
+    "base_prompt": "I\u2019m using the package { {{PACKAGE}} } and want to modify one of its functions.\nIn my code, I import it using { {{IMPORT}} }.\n\nThe change I need to make is: { {{CHANGE}} }.\n\nI want to apply this change at runtime (without editing the original source files).\nPlease show me the exact patch code I can paste into my project to make this modification work.\n\nFunction to modify:\n{ {{FUNCTION}} }\n\nFull source file:\n{ {{SOURCE_FILE}} }\n",
+    "parameters": [
+      "PACKAGE",
+      "IMPORT",
+      "CHANGE",
+      "FUNCTION",
+      "SOURCE_FILE"
+    ],
+    "id": "921991a0-19e7-47e5-9699-c94fa2d65f1e"
   }
 ]
