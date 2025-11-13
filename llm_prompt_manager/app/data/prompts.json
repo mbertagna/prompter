@@ -78,5 +78,15 @@
       "SOURCE_FILE"
     ],
     "id": "921991a0-19e7-47e5-9699-c94fa2d65f1e"
+  },
+  {
+    "title": "Website Project Summary",
+    "description": "",
+    "base_prompt": "You are a technical writer preparing a project summary for a personal portfolio website. Your audience is a mix of technical recruiters, fellow engineers, and hiring managers.\n\nYour mission is to synthesize the provided code and supplementary notes into a clear, concise, and engaging project description.\n\nTone:\n\nSimple but Technical: The language must be straightforward and easy to understand for a general technical audience. Avoid overly complex jargon, but do not be afraid to use correct technical terms (e.g., \"asynchronous API calls,\" \"state management,\" \"convolutional layer\").\n\nHumble but Competent: The tone should be confident, focusing on the facts of the project, but avoiding marketing-speak, hyperbole, or subjective claims (e.g., \"best-in-class,\" \"revolutionary\").\n\nOutput Format:\nYou MUST generate a response in Markdown, strictly following this structure:\n\n[Project Title - You will generate a creative but descriptive title]\n\nProject Summary:\n(A 1-2 sentence elevator pitch that answers \"What is this project?\").\n\nThe Problem & Motivation:\n(A short paragraph explaining the \"why.\" What problem, challenge, or curiosity inspired this project? What gap does it fill?)\n\nKey Features:\n(A bulleted list of the 2-4 most important or impressive functionalities. What makes this project interesting?)\n\nTech Stack & Implementation:\n(A short paragraph or bulleted list describing the \"how.\" What languages, frameworks, libraries, APIs, and tools were used? Briefly mention 1-2 key implementation details (e.g., \"Used FastAPI to build a RESTful API,\" \"Managed state using React's Context API,\" \"Trained a CNN using PyTorch\").\n\nChallenges & Lessons Learned:\n(A 1-2 sentence description of a specific technical challenge faced during development and how it was overcome. This demonstrates problem-solving skills and resilience.)\n\nInputs:\n\n1. Supplementary Information:\n\n{ {{supplementary_info}} }\n\n\n2. Code:\n\n{ {{code}} }",
+    "parameters": [
+      "supplementary_info",
+      "code"
+    ],
+    "id": "968770c2-46ab-4d4e-817b-784d9ca33ee8"
   }
 ]
